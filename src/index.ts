@@ -2,12 +2,16 @@ import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs } from "./schema";
 import { resolvers } from "./resolvers";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { DefaultArgs } from "@prisma/client/runtime/library";
 
-// A schema is a collection of type definitions (hence "typeDefs")
-// that together define the "shape" of queries that are executed against
-// your data.
+const prisma = new PrismaClient();
 
-const main = async() => {
+interface Context {
+  prisma: PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>;
+}
+
+const main = async () => {
   // The ApolloServer constructor requires two parameters: your schema
   // definition and your set of resolvers.
   const server = new ApolloServer({
@@ -20,10 +24,15 @@ const main = async() => {
   //  2. installs your ApolloServer instance as middleware
   //  3. prepares your app to handle incoming requests
   const { url } = await startStandaloneServer(server, {
-    listen: { port: 4000 },
+    listen: { port: 5000 },
+    context: async (): Promise<Context> => {
+      return {
+        prisma,
+      };
+    },
   });
 
   console.log(`🚀  Server ready at: ${url}`);
 };
 
-main()
+main();
